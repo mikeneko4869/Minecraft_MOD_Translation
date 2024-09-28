@@ -3,14 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOD翻訳サイト</title>
+    <title>Minecraft MOD 翻訳</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <h1>Minecraft MOD 翻訳サイト</h1>
-    <form action="/translate" method="post" enctype="multipart/form-data">
-        <label for="file">JSONファイルを選択:</label>
-        <input type="file" name="file" id="file" accept=".json" required>
-        <button type="submit">翻訳</button>
+    <h1>Minecraft MOD 翻訳</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".jar" required>
+        <button type="submit">翻訳開始</button>
     </form>
+    <div>
+        <p>進捗: <span id="progress">0</span>%</p>
+        <button id="download-btn" style="display: none;">翻訳ファイルをダウンロード</button>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#upload-form').on('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(data) {
+                        console.log(data);
+                        checkProgress();
+                    },
+                    error: function(err) {
+                        console.error(err);
+                    }
+                });
+            });
+
+            function checkProgress() {
+                setInterval(function() {
+                    $.get('/progress', function(data) {
+                        $('#progress').text(data.progress);
+                        if (data.progress >= 100) {
+                            $('#download-btn').show();
+                        }
+                    });
+                }, 1000);
+            }
+
+            $('#download-btn').on('click', function() {
+                window.location.href = '/download';
+            });
+        });
+    </script>
 </body>
 </html>
